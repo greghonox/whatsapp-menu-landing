@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Conheça o WhatsMenu, da Greg's Desenvolvimento de Software e Arquitetura: cardápio para vender pelo WhatsApp, mensalidade equivalente a um lanche e nenhuma comissão sobre vendas.">
+  <title>WhatsMenu — Mais pedidos, sem comissão | Greg's</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* Identidade visual original: fundo escuro, verde neon e superfícies translúcidas */
+    :root {
+      --void: #030303;
+      --surface: rgba(3, 3, 3, .86);
+      --neon: #00ffa3;
+      --neon-glow: rgba(0, 255, 163, .35);
+      --blue-pale: #89b4fa;
+      --text: #e0e0e0;
+      --text-dim: #b3b3b3;
+      --text-muted: #8b8b8b;
+      --border: rgba(255,255,255,.08);
+      --radius: 14px;
+      --shadow-card: 0 4px 30px rgba(0,0,0,.6);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+    body {
+      background: var(--void); color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6; overflow-x: hidden;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    a { color: inherit; }
+    .hero-scene {
+      position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(ellipse at 20% 30%, rgba(0,255,163,.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 70%, rgba(137,180,250,.06) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 50%, rgba(0,255,163,.04) 0%, transparent 70%);
+      animation: auroraShift 18s ease-in-out infinite alternate;
+    }
+    @keyframes auroraShift { 0% { background-position: 0% 0%; } 100% { background-position: 100% 100%; } }
+    .hero-scene::before {
+      content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      background-size: 200px; opacity: .7;
+    }
+    nav.ds-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100; min-height: 65px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 clamp(16px, 4vw, 56px);
+      background: rgba(3,3,3,.72); -webkit-backdrop-filter: blur(20px) saturate(1.1); backdrop-filter: blur(20px) saturate(1.1);
+      border-bottom: 1px solid var(--border);
+    }
+    nav.ds-nav .logo {
+      font: 700 16px/1 'JetBrains Mono', monospace; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--neon); text-shadow: 0 0 14px var(--neon-glow); text-decoration: none; white-space: nowrap;
+    }
+    nav.ds-nav .links { display: flex; gap: clamp(12px, 2.4vw, 28px); }
+    nav.ds-nav .links a {
+      font: 400 11px/1.4 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--text-dim); text-decoration: none; transition: color .2s;
+    }
+    nav.ds-nav .links a:hover { color: var(--neon); }
+    .hero {
+      min-height: 88vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 130px clamp(20px, 6vw, 80px) 90px; text-align: center; position: relative; z-index: 1;
+    }
+    .eyebrow {
+      font: 400 10px/1.5 'JetBrains Mono', monospace; letter-spacing: .22em; text-transform: uppercase;
+      color: var(--neon); margin-bottom: 18px; text-shadow: 0 0 8px var(--neon-glow);
+    }
+    .hero h1 {
+      font: 900 clamp(2.6rem, 6.5vw, 5.3rem)/.98 'Inter', sans-serif; letter-spacing: -.055em; color: #fff;
+      text-shadow: 0 4px 30px rgba(0,0,0,.7), 0 0 60px rgba(0,255,163,.15);
+      max-width: 1000px; margin-bottom: 26px;
+    }
+    .wordmark { color: var(--neon); text-shadow: 0 0 20px var(--neon-glow); }
+    .subtitle {
+      max-width: 700px; font: 300 1.12rem/1.6 'Inter', sans-serif; color: var(--text-dim);
+      margin-bottom: 34px;
+    }
+    .proof-points { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-bottom: 36px; }
+    .proof-points span {
+      border: 1px solid rgba(0,255,163,.24); border-radius: 999px; padding: 8px 14px;
+      color: var(--text); background: rgba(0,255,163,.045); font-size: .84rem;
+    }
+    .proof-points strong { color: var(--neon); }
+    .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+    .cta-row a {
+      display: inline-block; padding: 15px 28px; border-radius: 25px;
+      font: 600 13px/1.2 'JetBrains Mono', monospace; letter-spacing: .03em; text-decoration: none;
+      transition: all .25s ease; box-shadow: 0 2px 20px rgba(0,0,0,.35);
+    }
+    .btn-primary { background: var(--neon); color: #030303; box-shadow: 0 0 24px var(--neon-glow), 0 4px 20px rgba(0,0,0,.3); }
+    .btn-primary:hover { background: #00e691; transform: translateY(-2px); box-shadow: 0 0 30px var(--neon-glow), 0 6px 28px rgba(0,0,0,.4); }
+    .btn-outline { border: 1px solid rgba(255,255,255,.18); color: #fff; background: rgba(255,255,255,.03); }
+    .btn-outline:hover { border-color: var(--neon); color: var(--neon); background: rgba(0,255,163,.06); }
+    section { position: relative; z-index: 1; }
+    section.dark-glass {
+      background: rgba(3, 3, 3, .82); -webkit-backdrop-filter: blur(24px) saturate(1.05); backdrop-filter: blur(24px) saturate(1.05);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .ds-stage { padding: 100px clamp(24px, 6vw, 100px); max-width: 1240px; margin: 0 auto; }
+    section h2 {
+      font: 800 clamp(2rem, 4vw, 3.2rem)/1.08 'Inter', sans-serif; letter-spacing: -.04em; color: #fff;
+      margin-bottom: 14px; text-shadow: 0 2px 20px rgba(0,0,0,.6);
+    }
+    .subhead { font: 300 1.05rem/1.65 'Inter', sans-serif; color: var(--text-dim); max-width: 720px; margin-bottom: 44px; }
+    .benefits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr)); gap: 20px; }
+    .card-glass {
+      position: relative; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 28px 25px; background: rgba(255,255,255,.025); transition: all .3s ease;
+      -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+    }
+    .card-glass:hover { border-color: rgba(0,255,163,.3); background: rgba(255,255,255,.045); transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,.5); }
+    .card-glass h3 { font: 700 1.1rem/1.3 'Inter', sans-serif; color: #fff; margin-bottom: 10px; }
+    .card-glass p { font: 300 .95rem/1.65 'Inter', sans-serif; color: var(--text-dim); }
+    .benefit-icon { display: block; font-size: 1.55rem; margin-bottom: 17px; }
+    .price-callout {
+      margin-top: 28px; padding: clamp(22px, 4vw, 36px); border: 1px solid rgba(0,255,163,.28);
+      border-radius: var(--radius); background: linear-gradient(110deg, rgba(0,255,163,.09), rgba(255,255,255,.02));
+      display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center;
+    }
+    .price-callout .price-mark { color: var(--neon); font: 800 clamp(2.5rem, 6vw, 4rem)/1 'Inter', sans-serif; letter-spacing: -.07em; white-space: nowrap; }
+    .price-callout h3 { font-size: 1.25rem; color: #fff; margin-bottom: 5px; }
+    .price-callout p { color: var(--text-dim); font-weight: 300; }
+    .food-grid { display: grid; grid-template-columns: 1.25fr 1fr 1fr; grid-template-rows: repeat(2, minmax(180px, 1fr)); gap: 16px; }
+    .food-card {
+      min-height: 190px; position: relative; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius);
+      background: #111; box-shadow: var(--shadow-card);
+    }
+    .food-card:first-child { grid-row: span 2; }
+    .food-card img { width: 100%; height: 100%; min-height: 190px; display: block; object-fit: cover; transition: transform .5s ease; }
+    .food-card:first-child img { min-height: 396px; }
+    .food-card:hover img { transform: scale(1.04); }
+    .food-card::after { content: ""; position: absolute; inset: 35% 0 0; background: linear-gradient(transparent, rgba(0,0,0,.82)); pointer-events: none; }
+    .food-label { position: absolute; z-index: 1; left: 18px; right: 18px; bottom: 15px; color: #fff; font-weight: 700; text-shadow: 0 2px 12px #000; }
+    .food-note { color: var(--text-muted); font-size: .78rem; margin-top: 15px; }
+    .steps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; counter-reset: steps; }
+    .step-card { counter-increment: steps; }
+    .step-card::before { content: "0" counter(steps); display: block; color: var(--neon); font: 600 .8rem 'JetBrains Mono', monospace; margin-bottom: 18px; }
+    .about-box { max-width: 840px; margin: 0 auto; text-align: center; }
+    .about-box .subhead { margin-left: auto; margin-right: auto; }
+    .page-footer { border-top: 1px solid var(--border); padding: 38px 24px; text-align: center; background: rgba(3,3,3,.92); }
+    .page-footer p { font: 300 .85rem/1.6 'Inter', sans-serif; color: var(--text-muted); }
+    .page-footer strong { color: var(--text); font-weight: 600; }
+    .page-footer a { color: var(--neon); text-decoration: none; }
+    @media (max-width: 760px) {
+      nav.ds-nav { min-height: 60px; }
+      nav.ds-nav .logo { font-size: 13px; }
+      nav.ds-nav .links { gap: 12px; }
+      nav.ds-nav .links a { font-size: 9px; letter-spacing: .04em; }
+      .hero { min-height: auto; padding-top: 140px; padding-bottom: 75px; }
+      .ds-stage { padding-top: 75px; padding-bottom: 75px; }
+      .food-grid { grid-template-columns: 1fr 1fr; grid-template-rows: 260px 170px 170px; }
+      .food-card:first-child { grid-column: span 2; grid-row: auto; }
+      .food-card:first-child img { min-height: 260px; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .price-callout { grid-template-columns: 1fr; gap: 10px; }
+    }
+    @media (max-width: 420px) {
+      nav.ds-nav { padding: 0 12px; }
+      nav.ds-nav .logo { font-size: 11px; letter-spacing: .03em; }
+      nav.ds-nav .links { gap: 8px; }
+      nav.ds-nav .links a { font-size: 8px; }
+      .proof-points span { font-size: .76rem; }
+      .food-grid { gap: 10px; grid-template-rows: 230px 150px 150px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero-scene" aria-hidden="true"></div>
+  <nav class="ds-nav" aria-label="Navegação principal">
+    <a href="#inicio" class="logo">GREG'S</a>
+    <div class="links">
+      <a href="#vantagens">Vantagens</a>
+      <a href="#cardapio">Sabores</a>
+      <a href="#como-funciona">Como funciona</a>
+      <a href="#contato">Contato</a>
+    </div>
+  </nav>
+
+  <header id="inicio" class="hero">
+    <p class="eyebrow">Greg's Desenvolvimento de Software e Arquitetura apresenta</p>
+    <h1>Seu lanche vende. <span class="wordmark">Sua venda fica inteira com você.</span></h1>
+    <p class="subtitle">Com o WhatsMenu, seus clientes encontram o cardápio, escolhem o que desejam e enviam o pedido pelo WhatsApp. Você ganha praticidade no atendimento sem abrir mão do que vendeu.</p>
+    <div class="proof-points" aria-label="Destaques">
+      <span>Mensalidade que custa <strong>um lanche</strong></span>
+      <span><strong>0%</strong> de comissão</span>
+      <span>Seu pedido, seu atendimento</span>
+    </div>
+    <div class="cta-row">
+      <a href="#vantagens" class="btn-primary">Veja o que fica no seu caixa</a>
+      <a href="#cardapio" class="btn-outline">Conheça o cardápio</a>
+    </div>
+  </header>
+
+  <section id="vantagens" class="dark-glass" aria-labelledby="vantagens-title">
+    <div class="ds-stage">
+      <p class="eyebrow">Mais tranquilidade em cada pedido</p>
+      <h2 id="vantagens-title">A venda é sua. O lucro também.</h2>
+      <p class="subhead">Uma forma simples de apresentar seus lanches e refeições, facilitar a escolha do cliente e cuidar melhor do seu tempo — com um custo que cabe na rotina da lanchonete.</p>
+      <div class="benefits-grid">
+        <article class="card-glass">
+          <span class="benefit-icon" aria-hidden="true">🍔</span>
+          <h3>Um lanche paga o mês</h3>
+          <p>A mensalidade equivale ao valor de um lanche. Uma venda do mês cobre o custo; o restante continua sendo resultado do seu trabalho.</p>
+        </article>
+        <article class="card-glass">
+          <span class="benefit-icon" aria-hidden="true">🪙</span>
+          <h3>Nenhuma comissão sobre as vendas</h3>
+          <p>Não descontamos porcentagem de cada pedido. Vendeu dez, cinquenta ou cem lanches? O WhatsMenu não fica com uma parte de cada venda.</p>
+        </article>
+        <article class="card-glass">
+          <span class="benefit-icon" aria-hidden="true">📋</span>
+          <h3>Cardápio claro e sempre à mão</h3>
+          <p>Mostre opções, descrições e preços em um só lugar. O cliente consulta no tempo dele, sem depender de fotos antigas ou mensagens perdidas.</p>
+        </article>
+        <article class="card-glass">
+          <span class="benefit-icon" aria-hidden="true">⏱️</span>
+          <h3>Mais agilidade na correria</h3>
+          <p>O cliente escolhe e encaminha o pedido pelo WhatsApp. Sua equipe pode dedicar menos tempo explicando o menu e mais tempo preparando bem cada pedido.</p>
+        </article>
+      </div>
+      <div class="price-callout">
+        <div class="price-mark">1 lanche</div>
+        <div>
+          <h3>É o equivalente à mensalidade do WhatsMenu.</h3>
+          <p>Sem porcentagem por pedido. Sem ver parte do seu esforço desaparecer a cada venda.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cardapio" aria-labelledby="cardapio-title">
+    <div class="ds-stage">
+      <p class="eyebrow">Dê vontade antes mesmo do primeiro pedido</p>
+      <h2 id="cardapio-title">Um cardápio que abre o apetite.</h2>
+      <p class="subhead">Hambúrguer, hot dog, porção de batata e aquele suco gelado: deixe seus favoritos em evidência e ajude o cliente a decidir com os olhos.</p>
+      <div class="food-grid">
+        <figure class="food-card">
+          <img src="assets/food/x-burger-especial.jpg" alt="Hambúrguer especial com queijo e salada" loading="lazy" width="1000" height="831">
+          <figcaption class="food-label">X-burger especial</figcaption>
+        </figure>
+        <figure class="food-card">
+          <img src="assets/food/hot-dog-completo.jpg" alt="Hot dog completo servido com acompanhamentos" loading="lazy" width="1000" height="1778">
+          <figcaption class="food-label">Hot dog completo</figcaption>
+        </figure>
+        <figure class="food-card">
+          <img src="assets/food/batata-frita.jpg" alt="Porção dourada de batata frita" loading="lazy" width="1000" height="667">
+          <figcaption class="food-label">Batata frita</figcaption>
+        </figure>
+        <figure class="food-card">
+          <img src="assets/food/suco-natural-laranja.jpg" alt="Suco natural de laranja" loading="lazy" width="1000" height="750">
+          <figcaption class="food-label">Suco natural</figcaption>
+        </figure>
+      </div>
+      <p class="food-note">Imagens ilustrativas. No seu cardápio, você apresenta os produtos e preços da sua própria lanchonete.</p>
+    </div>
+  </section>
+
+  <section id="como-funciona" class="dark-glass" aria-labelledby="como-title">
+    <div class="ds-stage">
+      <p class="eyebrow">Do cardápio ao atendimento</p>
+      <h2 id="como-title">Um caminho simples para pedir.</h2>
+      <p class="subhead">O cliente faz a escolha com clareza. Você recebe o pedido pelo canal que já faz parte do dia a dia da sua lanchonete.</p>
+      <div class="steps-grid">
+        <article class="card-glass step-card">
+          <h3>O cliente confere</h3>
+          <p>Abre seu cardápio, vê as opções e os preços e encontra o que deu vontade de pedir.</p>
+        </article>
+        <article class="card-glass step-card">
+          <h3>Escolhe os favoritos</h3>
+          <p>Seleciona os itens e organiza o pedido sem precisar perguntar cada detalhe pelo chat.</p>
+        </article>
+        <article class="card-glass step-card">
+          <h3>Você recebe no WhatsApp</h3>
+          <p>O pedido chega para sua equipe confirmar e preparar, com mais clareza desde o começo.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="contato" aria-labelledby="contato-title">
+    <div class="ds-stage about-box">
+      <p class="eyebrow">Greg's Desenvolvimento de Software e Arquitetura</p>
+      <h2 id="contato-title">Mais cuidado no atendimento. Mais valor no seu trabalho.</h2>
+      <p class="subhead">O WhatsMenu foi pensado para lanchonetes e pequenos negócios de alimentação que querem apresentar bem seus produtos, facilitar pedidos e manter cada venda no próprio caixa — sem comissão.</p>
+      <div class="cta-row">
+        <a href="https://wa.me/5519992509913" class="btn-primary" target="_blank" rel="noopener noreferrer" aria-label="Conversar pelo WhatsApp no número +55 (19) 99250-9913">WhatsApp: +55(19)99250-9913</a>
+        <a href="mailto:greghono@gmail.com" class="btn-outline">E-mail: greghono@gmail.com</a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="page-footer">
+    <p><strong>Greg's Desenvolvimento de Software e Arquitetura</strong> · WhatsMenu · Hortolândia, SP</p>
+  </footer>
+</body>
+</html>
